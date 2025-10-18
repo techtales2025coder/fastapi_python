@@ -1,10 +1,11 @@
 from fastapi import FastAPI
-from typing import Dict
-from models.reservations import User,ParkingSpot
+from models.reservations import ParkingSpot
 from datetime import datetime,timedelta
 
+# intialization
 app = FastAPI()
 
+# Global variable for demoing post,get,update and delete
 total = 200
 parking_spots = []
 
@@ -52,8 +53,3 @@ async def delete_reservation(id: int):
         raise LookupError(f"Error occured while deleting parking spot with id: {id}")
     
     del parking_spots[id]
-
-
-
-
-
