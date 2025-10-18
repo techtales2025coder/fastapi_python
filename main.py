@@ -22,10 +22,7 @@ async def get_all_reservations() -> list:
 @app.get("/reservations/{item_id}")
 async def get_reservation(item_id: int) -> ParkingSpot | None:
     print(f"Current available parking_spots: {parking_spots}, parking_spot: {parking_spots[item_id]}")
-    if item_id in parking_spots:
-        return parking_spots[item_id]
-    
-    return None
+    return parking_spots[item_id]
 
 @app.post("/reservations/")
 async def create_reservation(parking_spot: ParkingSpot) -> ParkingSpot:
