@@ -1,6 +1,28 @@
-from fastapi import FastAPI
-from models.reservations import ParkingSpot
+from fastapi import Depends,FastAPI,Query
+from models.api import ParkingSpot
 from datetime import datetime,timedelta
+from dotenv import dotenv_values
+from sqlmodel import create_engine,Session,select
+from datetime import datetime
+from models.dal import User
+from typing import Annotated
+
+# DB connection details
+config = dotenv_values(".env")
+
+# Connection url used to connect to mysql db
+connection_url = f"mysql+mysqldb://{config["DB_USER"]}:{config["DB_PWD"]}@localhost:3306/{config["DB_NAME"]}"
+
+
+# Create engine for manging connection pool
+engine = create_engine(connection_url, echo=True)
+
+def get_session():
+    with Session(engine) as session:
+        yield session
+
+# Adding metadata for session to indicate that it is coming from get_session method.
+SessionDep = Annotated[Session, Depends(get_session)]
 
 # intialization
 app = FastAPI()
@@ -8,6 +30,23 @@ app = FastAPI()
 # Global variable for demoing post,get,update and delete
 total = 200
 parking_spots = []
+
+@app.get("/users/")
+def query_users(
+    q: str,
+    session: SessionDep,
+    limit: Annotated[int, Query(le=100)] = 100
+):
+    users = session.exec(select(User).where(User.first_name == q or User.last_name == q).limit(limit)).all()
+    print(f"Users returned from query_users: {users}")
+    return users
+
+@app.post("/users")
+def create_user(user: User, session: SessionDep):
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
 
 @app.get("/")
 async def root():
@@ -50,3 +89,6 @@ async def delete_reservation(id: int):
         raise LookupError(f"Error occured while deleting parking spot with id: {id}")
     
     del parking_spots[id]
+
+
+
